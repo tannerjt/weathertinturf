@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>February Weather</title>
+	<link rel="stylesheet" type="text/css" href="./bower_components/leaflet/dist/leaflet.css">
+	<style>
+	html, body {
+		height : 100%;
+		width: 100%;
+		margin:0; padding:0;
+	}
+	#map {
+		height : 100%;
+		width : 100%;
+		margin : 0; padding : 0;
+	}
+	#about	{
+		z-index : 99;
+		position : absolute;
+		bottom : 5px;
+		left : 5px;
+		width : 300px;
+		padding : 7px;
+		text-align : center;
+		font-family : sans-serif;
+		background-color : #ffffff;
+		font-size : 13px;
+	}
+	#about p {
+		margin : 0;
+		padding : 5px 0px;
+	}
+	</style>
+</head>
+<body>
+	<div id="about">
+		<p>Map Created by <a href="http://tannergeo.com/">TannerGeo</a></p>
+		<p>Data Provided By <a href="http://cdo.ncdc.noaa.gov/">NOAA NCDC</a></p>
+		<p>Built with <a href="http://turfjs.org/">turf.js</a> | <a href="http://leafletjs.com/">leaflet.js</a> | <a href="https://github.com/tannerjt/classybrew">classybrew</a></p>
+	</div>
+	<div id="map">
+		
+	</div>
+<script type="text/javascript" src="./bower_components/leaflet/dist/leaflet.js"></script>
+<script type="text/javascript" src="http://maps.stamen.com/js/tile.stamen.js?v1.3.0"></script>
+<script type="text/javascript" src="./bower_components/turf/turf.min.js"></script>
+<script type="text/javascript" src="./js/classybrew.js"></script>
+<script type="text/javascript" src="./data/02012015.js"></script>
+<script>
+	var map = L.map('map', {
+		center: new L.LatLng(39.4, -101.03),
+	    zoom: 4
+	});
+	var base = new L.StamenTileLayer("toner");
+	map.addLayer(base);
+
+	// create classification for colors
+	var brew = new classyBrew();
+	var values = []; // tmin values
+	for( var i = 0; i < feb01.features.length; i++) {
+		values.push(feb01.features[i].properties['TMIN']);
+	}
+	brew.setSeries(values);
+	brew.setNumClasses(6);
+	brew.classify();
+	brew.setColorCode("BuYlRd");
+
+	var tin = turf.tin(feb01, 'TMIN');
+	var geojson = L.geoJson(tin, {
+		style : function (f) {
+			return {
+				weight : 1,
+				fillColor : (function () {
+					return brew.getColorInRange((f.properties.a + f.properties.b + f.properties.c) / 3.0, true);
+				}()),
+				fillOpacity : 0.85
+			}
+		}
+	});
+	geojson.addTo(map);
+</script>
+</body>
+</html>
